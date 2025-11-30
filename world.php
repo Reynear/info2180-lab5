@@ -19,8 +19,23 @@ if (!empty($country)) {
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
-<ul>
-<?php foreach ($results as $row): ?>
-  <li><?php echo htmlspecialchars($row['name']) . ' is ruled by ' . htmlspecialchars($row['head_of_state']); ?></li>
-<?php endforeach; ?>
-</ul>
+<table>
+  <thead>
+    <tr>
+      <th>Country Name</th>
+      <th>Continent</th>
+      <th>Independence Year</th>
+      <th>Head of State</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($results as $row): ?>
+    <tr>
+      <td><?php echo htmlspecialchars($row['name']); ?></td>
+      <td><?php echo htmlspecialchars($row['continent']); ?></td>
+      <td><?php echo $row['independence_year'] ? htmlspecialchars($row['independence_year']) : 'N/A'; ?></td>
+      <td><?php echo htmlspecialchars($row['head_of_state']); ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
