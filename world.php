@@ -8,17 +8,60 @@ $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $p
 
 // Check if country parameter is provided and sanitize it
 $country = isset($_GET['country']) ? trim($_GET['country']) : '';
+$lookup = isset($_GET['lookup']) ? trim($_GET['lookup']) : '';
 
-if (!empty($country)) {
-    $stmt = $conn->prepare("SELECT * FROM countries WHERE name LIKE :country");
-    $stmt->execute(['country' => '%' . $country . '%']);
+if ($lookup === 'cities') {
+    // Query for cities in the specified country
+    if (!empty($country)) {
+        $stmt = $conn->prepare("
+            SELECT cities.name, cities.district, cities.population
+            FROM cities
+            JOIN countries ON cities.country_code = countries.code
+            WHERE countries.name LIKE :country
+            ORDER BY cities.population DESC
+        ");
+        $stmt->execute(['country' => '%' . $country . '%']);
+    } else {
+        $stmt = $conn->query("
+            SELECT cities.name, cities.district, cities.population
+            FROM cities
+            JOIN countries ON cities.country_code = countries.code
+            ORDER BY cities.population DESC
+        ");
+    }
 } else {
-    $stmt = $conn->query("SELECT * FROM countries");
+    // Original query for countries
+    if (!empty($country)) {
+        $stmt = $conn->prepare("SELECT * FROM countries WHERE name LIKE :country");
+        $stmt->execute(['country' => '%' . $country . '%']);
+    } else {
+        $stmt = $conn->query("SELECT * FROM countries");
+    }
 }
 
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
+<?php if ($lookup === 'cities'): ?>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>District</th>
+      <th>Population</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($results as $row): ?>
+    <tr>
+      <td><?php echo htmlspecialchars($row['name']); ?></td>
+      <td><?php echo htmlspecialchars($row['district']); ?></td>
+      <td><?php echo htmlspecialchars($row['population']); ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+<?php else: ?>
 <table>
   <thead>
     <tr>
@@ -39,3 +82,4 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endforeach; ?>
   </tbody>
 </table>
+<?php endif; ?>
